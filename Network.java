@@ -63,37 +63,55 @@ public class Network {
 		return sum;
 	}
 
-	public double dCostdw(double[] input, int layer, int neuron, int prev_neuron) {
+	public double dCostdw(double[] input, double[] output, int layer, int neuron, int prev_neuron) {
 		double dzdw = (layer == 0 ? input[prev_neuron] : Nonlinearity.normalize(computeZ(input, layer-1, prev_neuron)));
 		double dadz = Nonlinearity.derivativeAt(computeZ(input, layer, neuron));
-		double dCda = (layer+1 == neurons.length ? 2*(Nonlinearity.normalize(computeZ(input, layer, neuron))) : dCostdA(input, layer, neuron));
+		double dCda = (layer+1 == neurons.length ? 2*(Nonlinearity.normalize(computeZ(input, layer, neuron)) - output[neuron]) : dCostdA(input, layer, neuron));
 		return dzdw*dadz*dCda;
 	}
 
-	public double dCostdb(double[] input, int layer, int neuron) {
+	public double dCostdb(double[] input, double[] output, int layer, int neuron) {
 		double dzdb = 1;
 		double dadz = Nonlinearity.derivativeAt(computeZ(input, layer, neuron));
-		double dCda = (layer+1 == neurons.length ? 2*(Nonlinearity.normalize(computeZ(input, layer, neuron))) : dCostdA(input, layer, neuron));
+		double dCda = (layer+1 == neurons.length ? 2*(Nonlinearity.normalize(computeZ(input, layer, neuron)) - output[neuron]) : dCostdA(input, layer, neuron));
 		return dzdb*dadz*dCda;
 	}
 
-	public double[] gradientOfCost(double[] input) {
+	public double[] gradientOfCost(double[] input, double[] output) {
 		double[] gradient = new double[numWeights + numTotalNeurons];
 		int gradient_index = 0;
 		for(int i = 0; i < neurons.length; i++) {
 			for(int o = 0; o < neurons[i].length; o++) {
 				int numPrevNeurons = (i == 0 ? numInputs : neurons[i-1].length);
 				for(int k = 0; k < numPrevNeurons; k++) {
-					gradient[gradient_index++] = dCostdw(input, i, o, k);
+					gradient[gradient_index++] = dCostdw(input, output, i, o, k);
 				}
 			}
 		}
 		for(int i = 0; i < neurons.length; i++) {
 			for(int o = 0; o < neurons[i].length; o++) {
-				gradient[gradient_index++] = dCostdb(input, i, o);
+				gradient[gradient_index++] = dCostdb(input, output, i, o);
 			}
 		}
 		if(gradient_index != gradient.length) throw new RuntimeException("gradient mismatch");
 		return gradient;
+	}
+
+	public void nudgeWithGradient(double[] gradient) {
+		int gradient_index = 0;
+		for(int i = 0; i < neurons.length; i++) {
+			for(int o = 0; o < neurons[i].length; o++) {
+				int numPrevNeurons = (i == 0 ? numInputs : neurons[i-1].length);
+				for(int k = 0; k < numPrevNeurons; k++) {
+					neurons[i][o].nudgeWeight(k, -gradient[gradient_index++]);
+				}
+			}
+		}
+		for(int i = 0; i < neurons.length; i++) {
+			for(int o = 0; o < neurons[i].length; o++) {
+				neurons[i][o].nudgeBias(-gradient[gradient_index++]);
+			}
+		}
+		if(gradient_index != gradient.length) throw new RuntimeException("gradient mismatch");
 	}
 }
