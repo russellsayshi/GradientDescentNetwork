@@ -15,7 +15,10 @@ public class Neuron {
 		for(int i = 0; i < numWeights; i++) {
 			weights[i] = random.nextGaussian();
 		}
-		bias = random.nextGaussian();
+		//TODO make this less trashy
+		do {
+			bias = random.nextGaussian();
+		} while(Math.abs(bias) >= 0.95);
 	}
 
 	public double getOutput(double[] rawInput) {
@@ -37,19 +40,33 @@ public class Neuron {
 		return bias;
 	}
 
+	private void normalizeWeight(int i) {
+		if(weights[i] > 1) weights[i] = 1;
+		if(weights[i] < -1) weights[i] = -1;
+	}
+
+	private void normalizeBias() {
+		if(bias > 1) bias = 1;
+		if(bias < -1) bias = -1;
+	}
+
 	public void setWeight(int i, double weight) {
 		weights[i] = weight;
+		//normalizeWeight(i);
 	}
 
 	public void nudgeWeight(int i, double nudge) {
 		weights[i] += nudge;
+		//normalizeWeight(i);
 	}
 
 	public void setBias(double b) {
 		bias = b;
+		//normalizeBias();
 	}
 
 	public void nudgeBias(double nudge) {
 		bias += nudge;
+		//normalizeBias();
 	}
 }

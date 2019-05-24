@@ -20,6 +20,14 @@ public class Network {
 		}
 	}
 
+	public void randomize() {
+		for(int i = 0; i < neurons.length; i++) {
+			for(int o = 0; o < neurons[i].length; o++) {
+				neurons[i][o].randomize();
+			}
+		}
+	}
+
 	public double[] compute(double[] input) {
 		if(input.length != numInputs) throw new IllegalArgumentException("size mismatch.");
 
@@ -34,7 +42,17 @@ public class Network {
 		return prevOutputs;
 	}
 
+	public double computeCost(double[] input, double[] output) {
+		double[] outputs = compute(input);
+		double cost = 0;
+		for(int i = 0; i < outputs.length; i++) {
+			cost += (outputs[i]-output[i])*(outputs[i]-output[i]);
+		}
+		return cost;
+	}
+
 	//TODO delete me and replace with something better
+	//TODO the three below functions are trash so go and fix them
 	public double computeZ(double[] input, int neuron_layer, int neuron) {
 		if(input.length != numInputs) throw new IllegalArgumentException("size mismatch.");
 
