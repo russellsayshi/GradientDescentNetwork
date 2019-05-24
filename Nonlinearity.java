@@ -1,5 +1,5 @@
 public final class Nonlinearity {
-	private Nonlinearity();
+	private Nonlinearity() {}
 	public static double normalize(double x) {
 		double pos = Math.exp(x);
 		double neg = Math.exp(-x);
